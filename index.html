@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Green API Tester</title>
+
+    <link rel="icon" type="image/png" href="https://github.com/green-api/logo/blob/master/Icon-logo-GREEN-API/green/PNG/Logo_G%20_symbol%20_rim.png?raw=true">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            transition: 0.3s ease;
+        }
+
+        .container {
+            width: 1100px;
+            padding: 25px;
+            border-radius: 15px;
+            display: flex;
+            gap: 30px;
+            transition: 0.3s ease;
+        }
+
+        .left {
+            width: 380px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .left h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        input,
+        button {
+            padding: 10px;
+            margin-bottom: 12px;
+            font-size: 15px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            transition: 0.3s;
+        }
+
+        button {
+            background: #3b9702;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2e7a02;
+        }
+
+        .right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .right label {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        textarea {
+            width: 95%;
+            height: 100%;
+            resize: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            font-family: monospace;
+            transition: 0.3s;
+        }
+
+        body[data-theme="light"] {
+            background: #f3f3f3;
+            color: #000;
+        }
+
+        body[data-theme="light"] .container {
+            background: #fff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        body[data-theme="light"] input,
+        body[data-theme="light"] textarea {
+            background: #fff;
+            color: #000;
+            border-color: #ccc;
+        }
+
+        body[data-theme="dark"] {
+            background: #181a1b;
+            color: #fff;
+        }
+
+        body[data-theme="dark"] .container {
+            background: #1f2223;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.05);
+        }
+
+        body[data-theme="dark"] input,
+        body[data-theme="dark"] textarea {
+            background: #2a2d2e;
+            color: #fff;
+            border-color: #444;
+        }
+
+        body[data-theme="dark"] button {
+            background: #3b9702;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            background: #3b9702;
+            border: none;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body data-theme="light">
+
+    <button class="theme-toggle" onclick="toggleTheme()">🌙 / ☀️ </button>
+
+    <div class="container">
+
+        <div class="left">
+            <h2>GREEN-API Tester</h2>
+
+            <label>ID Instance:</label>
+            <input id="idInstance" placeholder="Например: 1234567890">
+
+            <label>API Token:</label>
+            <input id="apiToken" placeholder="Например: a1b2c3d4e5...">
+
+            <button onclick="getSettings()">getSettings</button>
+            <button onclick="getStateInstance()">getStateInstance</button>
+
+            <label>Номер получателя (chatId):</label>
+            <input id="chatId" placeholder="7777xxxxxxx">
+
+            <label>Текст сообщения:</label>
+            <input id="message" placeholder="Ваш текст">
+
+            <label>URL файла (для sendFileByUrl):</label>
+            <input id="fileUrl" placeholder="https://example.com/file.jpg">
+
+            <button onclick="sendMessage()">sendMessage</button>
+            <button onclick="sendFileByUrl()">sendFileByUrl</button>
+        </div>
+
+        <div class="right">
+            <label>Ответ API:</label>
+            <textarea id="response" readonly></textarea>
+        </div>
+
+    </div>
+
+    <script>
+        
+        function toggleTheme() {
+            let theme = document.body.dataset.theme;
+            document.body.dataset.theme = (theme === "light") ? "dark" : "light";
+        }
+
+        function buildUrl(method) {
+            const id = document.getElementById("idInstance").value.trim();
+            const token = document.getElementById("apiToken").value.trim();
+            return `https://${id}.api.green-api.com/waInstance${id}/${method}/${token}`;
+        }
+
+        function showResponse(data) {
+            document.getElementById("response").value = JSON.stringify(data, null, 4);
+        }
+
+        async function getSettings() {
+            const resp = await fetch(buildUrl("getSettings"));
+            showResponse(await resp.json());
+        }
+
+        async function getStateInstance() {
+            const resp = await fetch(buildUrl("getStateInstance"));
+            showResponse(await resp.json());
+        }
+
+        async function sendMessage() {
+            const payload = {
+                chatId: document.getElementById("chatId").value.trim() + "@c.us",
+                message: document.getElementById("message").value
+            };
+
+            const resp = await fetch(buildUrl("sendMessage"), {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            showResponse(await resp.json());
+        }
+
+        async function sendFileByUrl() {
+            const payload = {
+                chatId: document.getElementById("chatId").value.trim() + "@c.us",
+                urlFile: document.getElementById("fileUrl").value.trim(),
+                fileName: "file_from_url"
+            };
+
+            const resp = await fetch(buildUrl("sendFileByUrl"), {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            showResponse(await resp.json());
+        }
+    </script>
+
+</body>
+
+</html>
